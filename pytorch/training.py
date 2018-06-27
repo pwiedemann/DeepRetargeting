@@ -7,7 +7,7 @@ from torchvision import transforms
 import time
 
 from MyDataset import LightPoseMapDataset
-from my_utils import load_data
+from my_utils import load_data, reshape_data
 import model
 
 
@@ -110,20 +110,6 @@ def train(training_data, validation_data=None):
     torch.save(decoder.state_dict(), "/Users/pablowiedemann/DISTRO/Dev/test_dataset/decoder.pt")
 
 
-
-# =============================================================================
-# Reshape data to fit the input of the networks
-# and convert to pytorch tensor
-# =============================================================================
-def reshape_data(X):
-    Xshape=X.shape
-    # Flatten first 2 dimensions:
-    X= X.reshape(Xshape[0]*Xshape[1],Xshape[2],Xshape[3],Xshape[4])
-    # Move channel dimension to second array axis (channels first)
-    X=np.moveaxis(X,-1,1)
-    # Convert to tensor
-    X=torch.from_numpy(X).double()
-    return X
 
 
 # =============================================================================
