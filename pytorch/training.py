@@ -159,9 +159,11 @@ def dataset_train_val_test_split(dataset, toyset=False):
 # MAIN
 # =============================================================================
 def main():
+    from pathlib import Path
+    home = str(Path.home())  # get home directory
     
     # DATA
-    data_folder = data_folder="/Users/pablowiedemann/Dev/DATA/"
+    data_folder = data_folder=home+"/Dev/DATA/"
     data = load_data(data_folder, toyset=True)
     
     data['pose_maps'] = data['pose_maps'][:,0:1,...]

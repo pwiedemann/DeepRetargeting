@@ -67,7 +67,9 @@ def show_example_trafos(img):
     plt.show()
 
 
-
-#X = np.load("/Users/pablowiedemann/Dev/DATA/toy_dataset/posmaps.npz")['clips']
+#from pathlib import Path
+#home = str(Path.home())
+#
+#X = np.load(home+"/Dev/DATA/toy_dataset/posmaps.npz")['clips']
 #img=X[0][0]
 #show_example_trafos(img)
