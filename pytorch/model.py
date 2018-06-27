@@ -1,9 +1,11 @@
-import torch.nn as nn
-import torch.nn.functional as F
-
 '''
 ENCODER and DECODER Networks 
+
+Pablo Wiedemann   27.06.2018
 '''
+
+import torch.nn as nn
+import torch.nn.functional as F
 
 # =============================================================================
 # ENCODER
@@ -78,16 +80,4 @@ class Decoder(nn.Module):
         # out: b x 6 x 256 x 256
         return x
      
-
-
-#encoder = Encoder()
-#decoder = Decoder()
-#
-#X = torch.randn(1,6,256,256)
-#
-#X=encoder(X)
-#X=decoder(X)
-#print(str(encoder))
-#print(str(decoder))
-
 

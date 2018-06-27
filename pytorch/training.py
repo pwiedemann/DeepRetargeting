@@ -6,45 +6,9 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import time
 
+from MyDataset import LightPoseMapDataset
 from my_utils import load_data
 import model
-
-# =============================================================================
-# My dataset class
-# =============================================================================
-class LightPoseMapDataset(Dataset):
-
-    def __init__(self, light_maps, pose_maps, transform=None):
-        self.light_maps = light_maps
-        self.pose_maps = pose_maps
-        self.transform = transform
-    
-    def __len__(self):
-        return len(self.light_maps)
-
-
-    def __getitem__(self, idx):
-        # Get current light map item 
-        lightmap = self.light_maps[idx,...]
-        
-        # Get initial lightmap of current lighting configuration
-        idx_initLM = idx - idx%len(self.pose_maps)
-        init_lightmap = self.light_maps[idx_initLM,...]
-        # Get current position map:
-        #   We have a smaller set of pose maps, hence the following index:
-        #   f.i. if 100 pose maps => light_map 101 corrsp. to pose_map 1, 
-        #   light_map 102 to pose_map 2 , and so on...
-        idx_pose = idx%len(self.pose_maps)
-        posemap = self.pose_maps[idx_pose,...] 
-        print('samples: ', [idx , idx_initLM, idx_pose])
-        
-        sample = {'pose_maps': posemap, 'light_maps': lightmap, 'init_light_map': init_lightmap}
-        
-        if self.transform:
-            sample = self.transform(sample)        
-        
-        return sample
-
 
 
 # =============================================================================
@@ -67,7 +31,7 @@ def train(training_data, validation_data=None):
     
     
     
-    # model objects
+    # Instantiate models
     encoder     = model.Encoder()
     decoder     = model.Decoder()
     retargeter  = model.Decoder()
@@ -77,7 +41,7 @@ def train(training_data, validation_data=None):
     
     
     # Define loss function
-    mse_loss = nn.MSELoss()
+    mse_loss = nn.MSELoss()   # mean squared error
         
     # Define optimizer
     params = list(encoder.parameters()) + list(decoder.parameters()) + list(retargeter.parameters())
@@ -148,9 +112,10 @@ def train(training_data, validation_data=None):
 
 
 # =============================================================================
-# 
+# Reshape data to fit the input of the networks
+# and convert to pytorch tensor
 # =============================================================================
-def prepare_rawdata(X):
+def reshape_data(X):
     Xshape=X.shape
     # Flatten first 2 dimensions:
     X= X.reshape(Xshape[0]*Xshape[1],Xshape[2],Xshape[3],Xshape[4])
@@ -159,6 +124,7 @@ def prepare_rawdata(X):
     # Convert to tensor
     X=torch.from_numpy(X).double()
     return X
+
 
 # =============================================================================
 # Split dataset into training, validation and test sets
@@ -186,7 +152,8 @@ def dataset_train_val_test_split(dataset, toyset=False):
     # training 64 inbetween (from 100)
     training_set = dataset[idx_test:dim_dataset-idx_val]
     return {'train_set': training_set, 'val_set': val_set, 'test_set':test_set}
-       
+ 
+      
 
 # =============================================================================
 # MAIN
@@ -194,30 +161,28 @@ def dataset_train_val_test_split(dataset, toyset=False):
 def main():
     
     # DATA
-    data_folder = data_folder="/Users/pablowiedemann/DISTRO/Dev/Data/"
+    data_folder = data_folder="/Users/pablowiedemann/Dev/DATA/"
     data = load_data(data_folder, toyset=True)
     
     data['pose_maps'] = data['pose_maps'][:,0:1,...]
     data['light_maps'] = data['light_maps'][:,0:1,...]
     
-    data['pose_maps'] = prepare_rawdata(data['pose_maps'])
+    data['pose_maps'] = reshape_data(data['pose_maps'])
     
     # Split data 
     d_set = dataset_train_val_test_split(data['light_maps'], toyset=True)
     training_data  = {
-            'light_maps'    : prepare_rawdata(d_set['train_set']) , 
+            'light_maps'    : reshape_data(d_set['train_set']) , 
             'pose_maps'     : data['pose_maps']
             }
     val_data = {
-            'light_maps'    : prepare_rawdata(d_set['val_set']) , 
+            'light_maps'    : reshape_data(d_set['val_set']) , 
             'pose_maps'     : data['pose_maps']
             }
     test_data = {
-            'light_maps'    : prepare_rawdata(d_set['test_set']) , 
+            'light_maps'    : reshape_data(d_set['test_set']) , 
             'pose_maps'     : data['pose_maps']
             }
     
     # TRAINING 
-#    train(training_data, validation_data=val_data)
-
-main()
+    train(training_data, validation_data=val_data)
