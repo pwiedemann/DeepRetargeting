@@ -14,7 +14,7 @@ import model
 # =============================================================================
 # Training function
 # =============================================================================
-def train(training_data, validation_data=None):
+def train(training_data, validation_data=None, on_gpu=True):
     
     training_dataset = LightPoseMapDataset(light_maps=training_data['light_maps'], 
                                            pose_maps=training_data['pose_maps'])
@@ -38,6 +38,10 @@ def train(training_data, validation_data=None):
     encoder.double()
     decoder.double()
     retargeter.double()
+    if on_gpu: 
+        encoder=encoder.cuda()
+        decoder=decoder.cuda()
+        retargeter=retargeter.cuda()
     
     
     # Define loss function
@@ -57,15 +61,20 @@ def train(training_data, validation_data=None):
             pose_map = data["pose_maps"]        # current pose map
             init_LM = data['init_light_map']    # initial light map (to retarget) 
             
-            in_AE = torch.cat((light_map,pose_map),dim=1)
-            in_Retarget = torch.cat((init_LM,pose_map),dim=1)
+            # Network inputs
+            inp_AE = torch.cat((light_map,pose_map),dim=1)
+            inp_Retarget = torch.cat((init_LM,pose_map),dim=1)
+            
+            if on_gpu:
+                inp_AE=inp_AE.cuda()
+                inp_Retarget=inp_Retarget.cuda()
             
             # ===================forward=====================
             # forward pass "Autoencoder Net"
-            out_AE = encoder(in_AE)
+            out_AE = encoder(inp_AE)
             out_AE = decoder(out_AE)
             # forward pass "Retargeter Net"
-            out_Retarget = encoder(in_Retarget)
+            out_Retarget = encoder(inp_Retarget)
             out_Retarget = retargeter(out_Retarget)
             
             # Set losses
@@ -86,15 +95,19 @@ def train(training_data, validation_data=None):
                 pose_map = data["pose_maps"]        # current pose map
                 init_LM = data['init_light_map']    # initial light map (to retarget) 
                 
-                in_AE = torch.cat((light_map,pose_map),dim=1)
-                in_Retarget = torch.cat((init_LM,pose_map),dim=1)
+                inp_AE = torch.cat((light_map,pose_map),dim=1)
+                inp_Retarget = torch.cat((init_LM,pose_map),dim=1)
+                
+                if on_gpu:
+                    inp_AE=inp_AE.cuda()
+                    inp_Retarget=inp_Retarget.cuda()
                 
                 # ===================forward=====================
                 # forward pass "Autoencoder Net"
-                out_AE = encoder(in_AE)
+                out_AE = encoder(inp_AE)
                 out_AE = decoder(out_AE)
                 # forward pass "Retargeter Net"
-                out_Retarget = encoder(in_Retarget)
+                out_Retarget = encoder(inp_Retarget)
                 out_Retarget = retargeter(out_Retarget)
                 
                 # Set losses
