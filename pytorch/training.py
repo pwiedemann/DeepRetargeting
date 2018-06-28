@@ -15,10 +15,10 @@ import model
 # Training function
 # =============================================================================
 def train(training_data, validation_data=None, on_gpu=True):
-    
+
     training_dataset = LightPoseMapDataset(light_maps=training_data['light_maps'], 
                                            pose_maps=training_data['pose_maps'])
-    
+
     train_dataloader = DataLoader(training_dataset, batch_size=len(training_dataset), shuffle=True)
     
     print('trainingset: ', len(training_dataset))
