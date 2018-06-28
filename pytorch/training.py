@@ -2,13 +2,14 @@ import torch
 import numpy as np
 from torch import nn
 from torch.autograd import Variable
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from torchvision import transforms
 import time
 
 from MyDataset import LightPoseMapDataset
 from my_utils import load_data
 import model
+
 
 
 # =============================================================================
@@ -119,8 +120,9 @@ def train(training_data, validation_data=None, on_gpu=True):
         # ===================log========================
         print('\nepoch [{}/{}] .............. time:{:.4f} \ntrain_loss: {:.4f} \nval_loss: {:.4f}'.format(2, 24,time.time()-t1, training_loss, val_loss))
    
-    torch.save(encoder.state_dict(),"/Users/pablowiedemann/DISTRO/Dev/test_dataset/encoder.pt")
-    torch.save(decoder.state_dict(), "/Users/pablowiedemann/DISTRO/Dev/test_dataset/decoder.pt")
+    torch.save(encoder.state_dict(), home_dir+"/Dev/Trained_Data/encoder.pt")
+    torch.save(decoder.state_dict(), home_dir+"/Dev/Trained_Data/decoder.pt")
+    torch.save(retargeter.state_dict(), home_dir+"/Dev/Trained_Data/retargeter.pt")
 
 
 
@@ -173,10 +175,11 @@ def dataset_train_val_test_split(dataset, toyset=False):
 # =============================================================================
 def main():
     from pathlib import Path
-    home = str(Path.home())  # get home directory
+    global home_dir 
+    home_dir = str(Path.home())  # get home directory
     
     # DATA
-    data_folder = data_folder=home+"/Dev/DATA/"
+    data_folder = data_folder=home_dir+"/Dev/DATA/"
     data = load_data(data_folder, toyset=True)
     
     data['pose_maps'] = data['pose_maps'][:,0:1,...]
@@ -200,4 +203,5 @@ def main():
             }
     
     # TRAINING 
-    train(training_data, validation_data=val_data)
+    train(training_data, validation_data=val_data, on_gpu=False)
+
