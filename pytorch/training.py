@@ -57,7 +57,7 @@ def train(training_data, validation_data=None, on_gpu=True):
         print("\nepoch: ", epoch+1)
         t1=time.time()
         for i, data in enumerate(train_dataloader):
-            print("in trianing batch: ", i)
+            print("\nin trianing batch: ", i)
             light_map = data["light_maps"]      # current light map
             pose_map = data["pose_maps"]        # current pose map
             init_LM = data['init_light_map']    # initial light map (to retarget) 
@@ -69,6 +69,7 @@ def train(training_data, validation_data=None, on_gpu=True):
             if on_gpu:
                 inp_AE=inp_AE.cuda()
                 inp_Retarget=inp_Retarget.cuda()
+                light_map=light_map.cuda()
             
             # ===================forward=====================
             # forward pass "Autoencoder Net"
@@ -78,10 +79,13 @@ def train(training_data, validation_data=None, on_gpu=True):
             out_Retarget = encoder(inp_Retarget)
             out_Retarget = retargeter(out_Retarget)
             
-            # Set losses
-            loss_AE = mse_loss(out_AE, light_map)
-            loss_Retarget = mse_loss(out_Retarget, light_map)
             
+	    # Set losses
+            print("\nafter forward pass, before loss eval")
+            loss_AE = mse_loss(out_AE, light_map)
+            print("after loss eval AE")
+            loss_Retarget = mse_loss(out_Retarget, light_map)
+            print("after loss eval retargeter")
             training_loss=loss_AE+loss_Retarget
             
             # ===================backward====================
@@ -91,7 +95,7 @@ def train(training_data, validation_data=None, on_gpu=True):
         
         if validation_data:
             for i, data in enumerate(val_dataloader):
-                print("In validation batch: ", i)
+                print("\nin validation batch: ", i)
                 light_map = data["light_maps"]      # current light map
                 pose_map = data["pose_maps"]        # current pose map
                 init_LM = data['init_light_map']    # initial light map (to retarget) 
@@ -102,6 +106,7 @@ def train(training_data, validation_data=None, on_gpu=True):
                 if on_gpu:
                     inp_AE=inp_AE.cuda()
                     inp_Retarget=inp_Retarget.cuda()
+                    light_map=light_map.cuda()
                 
                 # ===================forward=====================
                 # forward pass "Autoencoder Net"
@@ -189,5 +194,6 @@ def main():
             }
     
     # TRAINING 
-    train(training_data, validation_data=val_data, on_gpu=False)
+    train(training_data, validation_data=val_data, on_gpu=True)
 
+main()
